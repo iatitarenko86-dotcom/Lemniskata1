@@ -54,7 +54,7 @@ def show_main_menu(chat_id, show_welcome=False):
     else:
         message_text = "🏠 *Главное меню*\n\nВыберите раздел для тренировки:"
 
-    bot.send_message(chat_id, message_text,
+    bot.send_message(chat_id, message_text, 
                      parse_mode='Markdown',
                      reply_markup=markup)
     set_user_state(chat_id, 'main_menu')
