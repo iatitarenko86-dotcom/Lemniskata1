@@ -4,17 +4,36 @@ import tasks_movement
 import tasks_work
 import tasks_concentration
 import tasks_percentage
-from user_states import *
+import time
 
 # Инициализация бота
 bot = telebot.TeleBot("8460111170:AAGTSFfs9-19khcCeqR4v9J5Vv0nGgR7TPg")
 
-# Словарь для хранения регистрационных данных пользователей
+# Словарь для хранения данных пользователей
 user_data = {}
+
+# ========== ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ СОСТОЯНИЯМИ ==========
+user_states = {}
+
+def set_user_state(user_id, state):
+    user_states[user_id] = state
+
+def get_user_state(user_id):
+    return user_states.get(user_id, 'main_menu')
+
+def clear_user_state(user_id):
+    if user_id in user_states:
+        del user_states[user_id]
+
+def get_current_module(user_id):
+    return user_states.get(user_id, 'main_menu')
+
+def is_user_in_module(user_id, module_name):
+    return user_states.get(user_id) == module_name
 
 
 # ==================== ГЛАВНОЕ МЕНЮ ====================
-def show_main_menu(chat_id):
+def show_main_menu(chat_id, show_welcome=False):
     """Отображает главное меню с кнопками"""
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
@@ -24,9 +43,18 @@ def show_main_menu(chat_id):
 
     markup.add(btn_text_tasks, btn_section2, btn_help)
 
-    bot.send_message(chat_id,
-                     "🏠 *Главное меню*\n\n"
-                     "Выберите раздел для тренировки:",
+    if show_welcome:
+        # Объединяем приветствие и главное меню в одном сообщении
+        message_text = (
+            '👋 *Добро пожаловать в бот-тренажер!* 📚\n\n'
+            'Здесь вы можете тренироваться в решении текстовых задач по математике.\n\n'
+            '🏠 *Главное меню*\n'
+            'Выберите раздел для тренировки:'
+        )
+    else:
+        message_text = "🏠 *Главное меню*\n\nВыберите раздел для тренировки:"
+
+    bot.send_message(chat_id, message_text,
                      parse_mode='Markdown',
                      reply_markup=markup)
     set_user_state(chat_id, 'main_menu')
@@ -34,7 +62,6 @@ def show_main_menu(chat_id):
 
 # ==================== МЕНЮ ТЕКСТОВЫХ ЗАДАЧ ====================
 def show_text_tasks_menu(chat_id):
-    """Отображает меню типов текстовых задач"""
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
     btn_movement = types.KeyboardButton('🚗 Задачи на движение')
@@ -58,9 +85,9 @@ def show_text_tasks_menu(chat_id):
 def start(message):
     user_id = message.chat.id
 
-    # Инициализируем регистрационные данные пользователя
+    # Устанавливаем состояние как 'completed' для всех пользователей
     user_data[user_id] = {
-        'state': 'waiting_fio',
+        'state': 'completed',
         'fio': None,
         'class_name': None,
         'school': None
@@ -69,65 +96,15 @@ def start(message):
     # Сбрасываем состояние навигации
     clear_user_state(user_id)
 
-    markup = types.ReplyKeyboardRemove()
-
-    bot.send_message(user_id,
-                     '👋 *Добро пожаловать в бот-тренажер!* 📚\n\n'
-                     'Пожалуйста, введите ваши данные.\n\n'
-                     'Для начала введите ваши фамилию, имя и отчество:',
-                     parse_mode='Markdown',
-                     reply_markup=markup)
-
-
-# ==================== ОБРАБОТЧИК РЕГИСТРАЦИИ ====================
-def handle_fio_input(user_id, text):
-    """Обработка ввода ФИО"""
-    if text and len(text.split()) >= 2:
-        user_data[user_id]['fio'] = text
-        user_data[user_id]['state'] = 'waiting_class'
-        bot.send_message(user_id, "✅ Отлично! Теперь введите ваш класс обучения (например, 10А):")
-    else:
-        bot.send_message(user_id, "⚠️ Пожалуйста, введите фамилию, имя и отчество полностью (минимум 2 слова):")
-
-
-def handle_class_input(user_id, text):
-    """Обработка ввода класса"""
-    if text:
-        user_data[user_id]['class_name'] = text
-        user_data[user_id]['state'] = 'waiting_school'
-        bot.send_message(user_id, "✅ Хорошо! Теперь введите вашу образовательную организацию:")
-    else:
-        bot.send_message(user_id, "⚠️ Пожалуйста, введите ваш класс обучения:")
-
-
-def handle_school_input(user_id, text):
-    """Обработка ввода образовательной организации"""
-    if text:
-        user_data[user_id]['school'] = text
-        user_data[user_id]['state'] = 'completed'
-
-        # Формируем итоговое сообщение
-        final_message = (
-            "✅ *Спасибо! Ваши данные сохранены:*\n\n"
-            f"👤 *ФИО:* {user_data[user_id]['fio']}\n"
-            f"🎓 *Класс:* {user_data[user_id]['class_name']}\n"
-            f"🏫 *Образовательная организация:* {user_data[user_id]['school']}\n\n"
-            "Теперь вы можете приступить к тренировкам!"
-        )
-
-        bot.send_message(user_id, final_message, parse_mode='Markdown')
-
-        # Показываем главное меню
-        show_main_menu(user_id)
-    else:
-        bot.send_message(user_id, "⚠️ Пожалуйста, введите название образовательной организации:")
+    # Отправляем приветственное сообщение с главным меню в одном сообщении
+    show_main_menu(user_id, show_welcome=True)
 
 
 # ==================== ФУНКЦИЯ ПОМОЩИ ====================
 def show_help(chat_id):
     help_text = (
         "ℹ️ *Помощь по боту-тренажеру*\n\n"
-        "1. *Регистрация:* Введите /start для начала работы\n"
+        "1. *Начало работы:* Введите /start для отображения главного меню\n"
         "2. *Навигация:* Используйте кнопки для перехода между разделами\n"
         "3. *Текстовые задачи:* Выберите тип задач для тренировки\n"
         "4. *Раздел 2:* Дополнительные материалы (в разработке)\n\n"
@@ -142,28 +119,15 @@ def handle_messages(message):
     user_id = message.chat.id
     text = message.text.strip()
 
-    # Если пользователь не начал с /start
+    # Если пользователь не начал с /start, предлагаем начать
     if user_id not in user_data:
         bot.send_message(user_id, "Пожалуйста, сначала введите команду /start")
         return
 
     current_state = user_data[user_id].get('state', '')
 
-    # ========== РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ ==========
-    if current_state == 'waiting_fio':
-        handle_fio_input(user_id, text)
-        return
-
-    elif current_state == 'waiting_class':
-        handle_class_input(user_id, text)
-        return
-
-    elif current_state == 'waiting_school':
-        handle_school_input(user_id, text)
-        return
-
-    # ========== ПОСЛЕ РЕГИСТРАЦИИ ==========
-    elif current_state == 'completed':
+    # ========== ПОСЛЕ ПРИВЕТСТВИЯ ==========
+    if current_state == 'completed':
         # Получаем текущий модуль пользователя
         current_module = get_current_module(user_id)
 
@@ -179,21 +143,18 @@ def handle_messages(message):
 
         # ========== МОДУЛЬ: ЗАДАЧИ НА РАБОТУ ==========
         elif is_user_in_module(user_id, 'work_tasks'):
-            # Здесь будет обработка задач на работу
             if text == '🔙 Назад к типам задач':
                 show_text_tasks_menu(user_id)
                 return
 
         # ========== МОДУЛЬ: ЗАДАЧИ НА КОНЦЕНТРАЦИЮ ==========
         elif is_user_in_module(user_id, 'concentration_tasks'):
-            # Здесь будет обработка задач на концентрацию
             if text == '🔙 Назад к типам задач':
                 show_text_tasks_menu(user_id)
                 return
 
         # ========== МОДУЛЬ: ЗАДАЧИ НА ПРОЦЕНТЫ ==========
         elif is_user_in_module(user_id, 'percentage_tasks'):
-            # Здесь будет обработка задач на проценты
             if text == '🔙 Назад к типам задач':
                 show_text_tasks_menu(user_id)
                 return
@@ -220,7 +181,6 @@ def handle_messages(message):
                 show_main_menu(user_id)
 
             else:
-                # Если сообщение не распознано, показываем меню текстовых задач
                 show_text_tasks_menu(user_id)
 
         # ========== ГЛАВНОЕ МЕНЮ ==========
@@ -239,12 +199,10 @@ def handle_messages(message):
                 show_help(user_id)
 
             else:
-                # Если сообщение не распознано, показываем главное меню
                 show_main_menu(user_id)
 
         # ========== НЕИЗВЕСТНОЕ СОСТОЯНИЕ ==========
         else:
-            # Если модуль не определен, показываем главное меню
             show_main_menu(user_id)
 
     # ========== СОСТОЯНИЕ НЕ ОПРЕДЕЛЕНО ==========
@@ -258,7 +216,7 @@ if __name__ == "__main__":
     print("📡 Ожидание сообщений...")
     print("=" * 50)
     print("Доступные модули:")
-    print("1. Задачи на движение")
+    print("1. Задачи на движение (с тренажером)")
     print("2. Задачи на работу")
     print("3. Задачи на концентрацию")
     print("4. Задачи на проценты")
