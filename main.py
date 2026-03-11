@@ -67,7 +67,7 @@ def show_text_tasks_menu(chat_id):
     btn_movement = types.KeyboardButton('🚗 Задачи на движение')
     btn_work = types.KeyboardButton('🛠️ Задачи на работу')
     btn_concentration = types.KeyboardButton('🧪 Задачи на концентрацию')
-    btn_percentage = types.KeyboardButton('📊 Задачи на %')
+    btn_percentage = types.KeyboardButton('📊 Задачи на проценты')
     btn_back = types.KeyboardButton('🔙 Назад в главное меню')
 
     markup.add(btn_movement, btn_work, btn_concentration, btn_percentage, btn_back)
@@ -146,17 +146,34 @@ def handle_messages(message):
             if text == '🔙 Назад к типам задач':
                 show_text_tasks_menu(user_id)
                 return
+            else:
+                # Здесь будет обработчик задач на работу
+                tasks_work.handle_work_tasks(bot, message, user_data)
+                return
 
         # ========== МОДУЛЬ: ЗАДАЧИ НА КОНЦЕНТРАЦИЮ ==========
         elif is_user_in_module(user_id, 'concentration_tasks'):
             if text == '🔙 Назад к типам задач':
                 show_text_tasks_menu(user_id)
                 return
+            else:
+                # Здесь будет обработчик задач на концентрацию
+                tasks_concentration.handle_concentration_tasks(bot, message, user_data)
+                return
 
         # ========== МОДУЛЬ: ЗАДАЧИ НА ПРОЦЕНТЫ ==========
         elif is_user_in_module(user_id, 'percentage_tasks'):
+            # Обрабатываем кнопку возврата к типам задач
             if text == '🔙 Назад к типам задач':
                 show_text_tasks_menu(user_id)
+                return
+            # Обрабатываем кнопку возврата к меню процентов
+            elif text == '🔙 Назад к меню процентов':
+                tasks_percentage.show_percentage_main_menu(bot, user_id)
+                return
+            # Обрабатываем все остальные сообщения через модуль процентов
+            else:
+                tasks_percentage.handle_percentage_tasks(bot, message, user_data)
                 return
 
         # ========== МЕНЮ ТЕКСТОВЫХ ЗАДАЧ ==========
@@ -167,15 +184,17 @@ def handle_messages(message):
 
             elif text == '🛠️ Задачи на работу':
                 set_user_state(user_id, 'work_tasks')
-                tasks_work.start_work_tasks(bot, user_id)
+                # Вызов функции запуска задач на работу
+                tasks_work.start_work_tasks(bot, user_id, user_data)
 
             elif text == '🧪 Задачи на концентрацию':
                 set_user_state(user_id, 'concentration_tasks')
-                tasks_concentration.start_concentration_tasks(bot, user_id)
+                # Вызов функции запуска задач на концентрацию
+                tasks_concentration.start_concentration_tasks(bot, user_id, user_data)
 
-            elif text == '📊 Задачи на %':
+            elif text == '📊 Задачи на проценты':
                 set_user_state(user_id, 'percentage_tasks')
-                tasks_percentage.start_percentage_tasks(bot, user_id)
+                tasks_percentage.start_percentage_tasks(bot, user_id, user_data)
 
             elif text == '🔙 Назад в главное меню':
                 show_main_menu(user_id)
@@ -219,6 +238,6 @@ if __name__ == "__main__":
     print("1. Задачи на движение (с тренажером)")
     print("2. Задачи на работу")
     print("3. Задачи на концентрацию")
-    print("4. Задачи на проценты")
+    print("4. Задачи на проценты (с тренажером)")
     print("=" * 50)
     bot.infinity_polling(none_stop=True)
