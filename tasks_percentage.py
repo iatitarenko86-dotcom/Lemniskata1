@@ -528,14 +528,14 @@ def show_examples_menu(bot, chat_id):
     """Отображает меню примеров задач с 5 кнопками"""
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
-    btn_example16 = types.KeyboardButton('📱 Пример 16: Скидка на телефон')
-    btn_example17 = types.KeyboardButton('🧈 Пример 17: Скидка пенсионерам')
-    btn_example18 = types.KeyboardButton('📚 Пример 18: Двойное снижение цены')
-    btn_example19 = types.KeyboardButton('💰 Пример 19: Налог на доходы')
-    btn_example20 = types.KeyboardButton('🌳 Пример 20: Деревья в парке')
+    btn_example1 = types.KeyboardButton('📱 Пример 1: Скидка на телефон')
+    btn_example2 = types.KeyboardButton('🧈 Пример 2: Скидка пенсионерам')
+    btn_example3 = types.KeyboardButton('📚 Пример 3: Двойное снижение цены')
+    btn_example4 = types.KeyboardButton('💰 Пример 4: Налог на доходы')
+    btn_example5 = types.KeyboardButton('🌳 Пример 5: Деревья в парке')
     btn_back = types.KeyboardButton('🔙 Назад к меню процентов')
 
-    markup.add(btn_example16, btn_example17, btn_example18, btn_example19, btn_example20, btn_back)
+    markup.add(btn_example1, btn_example2, btn_example3, btn_example4, btn_example5, btn_back)
 
     bot.send_message(chat_id,
                      "📝 *Примеры задач на проценты*\n\n"
@@ -552,10 +552,10 @@ def show_examples_menu(bot, chat_id):
 
 # ==================== ПРИМЕРЫ ЗАДАЧ ====================
 
-def send_example_16(bot, chat_id):
-    """Отправляет пример 16: Скидка на телефон"""
+def send_example_1(bot, chat_id):
+    """Отправляет пример 1: Скидка на телефон"""
     example_text = (
-        "📱 *Пример 16: Скидка на телефон*\n\n"
+        "📱 *Пример 1: Скидка на телефон*\n\n"
         "*Условие задачи:*\n"
         "Мобильный телефон стоил 5000 рублей. Через некоторое время цену на\n"
         "эту модель снизили до 3000 рублей. На сколько процентов была снижена\n"
@@ -595,10 +595,10 @@ def send_example_16(bot, chat_id):
     set_user_state(chat_id, 'percentage_tasks', 'viewing_example')
 
 
-def send_example_17(bot, chat_id):
-    """Отправляет пример 17: Скидка пенсионерам"""
+def send_example_2(bot, chat_id):
+    """Отправляет пример 2: Скидка пенсионерам"""
     example_text = (
-        "🧈 *Пример 17: Скидка пенсионерам*\n\n"
+        "🧈 *Пример 2: Скидка пенсионерам*\n\n"
         "*Условие задачи:*\n"
         "Пачка сливочного масла стоит 60 рублей. Пенсионерам магазин делает\n"
         "скидку 5%. Сколько рублей стоит пачка масла для пенсионера?\n\n"
@@ -639,10 +639,10 @@ def send_example_17(bot, chat_id):
     set_user_state(chat_id, 'percentage_tasks', 'viewing_example')
 
 
-def send_example_18(bot, chat_id):
-    """Отправляет пример 18: Двойное снижение цены"""
+def send_example_3(bot, chat_id):
+    """Отправляет пример 3: Двойное снижение цены"""
     example_text = (
-        "📚 *Пример 18: Двойное снижение цены*\n\n"
+        "📚 *Пример 3: Двойное снижение цены*\n\n"
         "*Условие задачи:*\n"
         "До снижения цен книга в киоске стоила 120 рублей. Вычислите цену\n"
         "книги после двух последовательных снижений, если первое снижение\n"
@@ -684,10 +684,10 @@ def send_example_18(bot, chat_id):
     set_user_state(chat_id, 'percentage_tasks', 'viewing_example')
 
 
-def send_example_19(bot, chat_id):
-    """Отправляет пример 19: Налог на доходы"""
+def send_example_4(bot, chat_id):
+    """Отправляет пример 4: Налог на доходы"""
     example_text = (
-        "💰 *Пример 19: Налог на доходы*\n\n"
+        "💰 *Пример 4: Налог на доходы*\n\n"
         "*Условие задачи:*\n"
         "Налог на доходы составляет 13% от заработной платы. После удержания\n"
         "налога на доходы Мария Константиновна получила 9570 рублей. Сколько\n"
@@ -728,10 +728,10 @@ def send_example_19(bot, chat_id):
     set_user_state(chat_id, 'percentage_tasks', 'viewing_example')
 
 
-def send_example_20(bot, chat_id):
-    """Отправляет пример 20: Деревья в парке"""
+def send_example_5(bot, chat_id):
+    """Отправляет пример 5: Деревья в парке"""
     example_text = (
-        "🌳 *Пример 20: Деревья в парке*\n\n"
+        "🌳 *Пример 5: Деревья в парке*\n\n"
         "*Условие задачи:*\n"
         "В парке 25% всех деревьев составляют берёзы, третью часть --- клёны.\n"
         "Дубов в этом парке на 24 больше, чем клёнов, а остальные 46 деревьев --- липы.\n"
@@ -1015,4 +1015,5 @@ def handle_percentage_tasks(bot, message, user_data):
 
     else:
         # Если сообщение не распознано, показываем главное меню процентов
+
         show_percentage_main_menu(bot, user_id)
