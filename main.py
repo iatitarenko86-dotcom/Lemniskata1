@@ -6,16 +6,9 @@ import tasks_concentration
 import tasks_percentage
 import time
 import sys
-import os
-import signal
-import atexit
 
 # Инициализация бота
-TOKEN = "8460111170:AAGTSFfs9-19khcCeqR4v9J5Vv0nGgR7TPg"
-bot = telebot.TeleBot(TOKEN)
-
-# Файл блокировки
-LOCK_FILE = 'bot.lock'
+bot = telebot.TeleBot("8460111170:AAGTSFfs9-19khcCeqR4v9J5Vv0nGgR7TPg")
 
 # Словарь для хранения данных пользователей
 user_data = {}
@@ -43,58 +36,6 @@ def get_current_module(user_id):
 
 def is_user_in_module(user_id, module_name):
     return user_states.get(user_id) == module_name
-
-
-# ========== ФУНКЦИИ ДЛЯ ПРЕДОТВРАЩЕНИЯ МНОЖЕСТВЕННЫХ ЗАПУСКОВ ==========
-def create_lock():
-    """Создает файл блокировки"""
-    try:
-        with open(LOCK_FILE, 'x') as f:
-            f.write(str(os.getpid()))
-        return True
-    except FileExistsError:
-        # Проверяем, существует ли процесс с PID из файла
-        try:
-            with open(LOCK_FILE, 'r') as f:
-                old_pid = int(f.read().strip())
-            # Проверяем, жив ли процесс
-            os.kill(old_pid, 0)
-            print(f"❌ Бот уже запущен с PID: {old_pid}")
-            print("💡 Используйте force_stop.py для остановки")
-            return False
-        except (ProcessLookupError, ValueError):
-            # Процесс не существует, удаляем старый lock файл
-            os.remove(LOCK_FILE)
-            with open(LOCK_FILE, 'x') as f:
-                f.write(str(os.getpid()))
-            return True
-    except Exception as e:
-        print(f"⚠️ Ошибка при создании блокировки: {e}")
-        return True
-
-
-def remove_lock():
-    """Удаляет файл блокировки"""
-    try:
-        if os.path.exists(LOCK_FILE):
-            os.remove(LOCK_FILE)
-    except:
-        pass
-
-
-# Регистрируем удаление lock файла при выходе
-atexit.register(remove_lock)
-
-
-# Обработчик сигналов
-def signal_handler(sig, frame):
-    print("\n👋 Получен сигнал остановки...")
-    remove_lock()
-    sys.exit(0)
-
-
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
 
 
 # ==================== ГЛАВНОЕ МЕНЮ ====================
@@ -167,9 +108,7 @@ def show_help(chat_id):
         "1. *Начало работы:* Введите /start для отображения главного меню\n"
         "2. *Навигация:* Используйте кнопки для перехода между разделами\n"
         "3. *Текстовые задачи:* Выберите тип задач для тренировки\n"
-        "4. *Задачи на движение:* тренировка с тренажером\n"
-        "5. *Задачи на концентрацию:* смеси, сплавы, растворы\n"
-        "6. *Задачи на проценты:* проценты, скидки, вклады\n\n"
+        "4. *Раздел 2:* Дополнительные материалы (в разработке)\n\n"
         "Для возврата в главное меню используйте кнопку 'Назад'"
     )
     bot.send_message(chat_id, help_text, parse_mode='Markdown')
@@ -201,6 +140,7 @@ def handle_messages(message):
     # ========== МОДУЛЬ: ЗАДАЧИ НА КОНЦЕНТРАЦИЮ ==========
     if is_user_in_module(user_id, 'concentration_tasks'):
         try:
+            # Проверяем наличие функции в модуле
             if hasattr(tasks_concentration, 'handle_concentration_tasks'):
                 tasks_concentration.handle_concentration_tasks(bot, message, user_data)
             else:
@@ -215,6 +155,7 @@ def handle_messages(message):
     # ========== МОДУЛЬ: ЗАДАЧИ НА ПРОЦЕНТЫ ==========
     if is_user_in_module(user_id, 'percentage_tasks'):
         try:
+            # Проверяем наличие функции в модуле
             if hasattr(tasks_percentage, 'handle_percentage_tasks'):
                 tasks_percentage.handle_percentage_tasks(bot, message, user_data)
             else:
@@ -286,12 +227,6 @@ def handle_messages(message):
 
 # ==================== ЗАПУСК БОТА ====================
 if __name__ == "__main__":
-    # Проверяем, не запущен ли уже бот
-    if not create_lock():
-        print("\n❌ Не удалось запустить бота. Другой экземпляр уже работает.")
-        print("💡 Запустите force_stop.py для завершения всех процессов")
-        sys.exit(1)
-
     print("🤖 Бот запущен...")
     print("📡 Ожидание сообщений...")
     print("=" * 50)
@@ -300,17 +235,43 @@ if __name__ == "__main__":
     print("2. Задачи на работу")
     print("3. Задачи на концентрацию (с тренажером)")
     print("4. Задачи на проценты (с тренажером)")
-    print("=" * 50)
-    print(f"📊 PID процесса: {os.getpid()}")
-    print("⚠️  Для остановки бота нажмите Ctrl+C")
+
+    # Проверка импорта модулей
+    print("\n=== Проверка модулей ===")
+
+    # Проверка модуля движения
+    if 'tasks_movement' in sys.modules:
+        print("✅ Модуль движения загружен")
+        if hasattr(tasks_movement, 'handle_movement_tasks'):
+            print("   ✅ handle_movement_tasks найдена")
+    else:
+        print("❌ Модуль движения НЕ загружен")
+
+    # Проверка модуля концентрации
+    if 'tasks_concentration' in sys.modules:
+        print("✅ Модуль концентрации загружен")
+        if hasattr(tasks_concentration, 'handle_concentration_tasks'):
+            print("   ✅ handle_concentration_tasks найдена")
+        if hasattr(tasks_concentration, 'start_concentration_tasks'):
+            print("   ✅ start_concentration_tasks найдена")
+    else:
+        print("❌ Модуль концентрации НЕ загружен")
+
+    # Проверка модуля процентов
+    if 'tasks_percentage' in sys.modules:
+        print("✅ Модуль процентов загружен")
+        if hasattr(tasks_percentage, 'handle_percentage_tasks'):
+            print("   ✅ handle_percentage_tasks найдена")
+        if hasattr(tasks_percentage, 'start_percentage_tasks'):
+            print("   ✅ start_percentage_tasks найдена")
+    else:
+        print("❌ Модуль процентов НЕ загружен")
+
     print("=" * 50)
 
     # Запуск с обработкой ошибок
     try:
-        bot.infinity_polling(none_stop=True, timeout=30, long_polling_timeout=30)
-    except KeyboardInterrupt:
-        print("\n👋 Бот остановлен пользователем")
+        bot.infinity_polling(none_stop=True, timeout=30)
     except Exception as e:
         print(f"❌ Ошибка при запуске бота: {e}")
-    finally:
-        remove_lock()
+        print("Убедитесь, что нет других запущенных экземпляров бота")

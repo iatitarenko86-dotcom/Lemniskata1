@@ -5,9 +5,34 @@ from simulator_concentration1 import SimulatorConcentration1
 from simulator_concentration2 import SimulatorConcentration2
 from simulator_concentration3 import SimulatorConcentration3
 from simulator_concentration4 import SimulatorConcentration4
+import inspect
 
 # Глобальный словарь для хранения тренажеров по пользователям
 тренажеры_пользователей = {}
+
+
+# ==================== ФУНКЦИЯ-ОБЕРТКА ДЛЯ НАВИГАЦИИ ====================
+def show_text_tasks_menu_wrapper(bot, chat_id):
+    """Обертка для вызова show_text_tasks_menu из main.py"""
+    try:
+        # Пробуем импортировать функцию
+        from main import show_text_tasks_menu
+
+        # Проверяем сигнатуру функции
+        sig = inspect.signature(show_text_tasks_menu)
+
+        if len(sig.parameters) == 1:
+            # Функция принимает только chat_id
+            show_text_tasks_menu(chat_id)
+        else:
+            # Функция принимает bot и chat_id
+            show_text_tasks_menu(bot, chat_id)
+    except ImportError:
+        # Если функция не найдена в main.py, показываем меню концентрации
+        show_concentration_main_menu(bot, chat_id)
+    except Exception as e:
+        print(f"Ошибка при вызове show_text_tasks_menu: {e}")
+        show_concentration_main_menu(bot, chat_id)
 
 
 # ==================== ГЛАВНОЕ МЕНЮ КОНЦЕНТРАЦИИ ====================
@@ -583,7 +608,7 @@ def send_example_1(bot, chat_id):
         "+-----------------------+-------------+-------------+-------------+\n"
         "| Объем раствора (л)    |      8      |     12      |     20      |\n"
         "| Концентрация (%)      |     15      |     25      |      ?      |\n"
-        "| Объем вещества (л)    |   8·0,15   |  12·0,25   |    сумма    |\n"
+        "| Объем вещества (л)    |   8·0,15    |  12·0,25    |    сумма    |\n"
         "|                       |    1,2      |    3,0      |    4,2      |\n"
         "+-----------------------+-------------+-------------+-------------+\n"
         "```\n\n"
@@ -696,8 +721,8 @@ def send_example_3(bot, chat_id):
         "+-----------------------+-------------+-------------+-------------+\n"
         "| Масса меди (кг)       |     x       |     12      |    x+12     |\n"
         "| Масса цинка (кг)      |     y       |      0      |     y       |\n"
-        "| Общая масса (кг)       |    x+y      |     12      |   x+y+12    |\n"
-        "| Соотношение            |  x = y+11   |      -      |  75% меди   |\n"
+        "| Общая масса (кг)      |    x+y      |     12      |   x+y+12    |\n"
+        "| Соотношение           |  x = y+11   |      -      |  75% меди   |\n"
         "+-----------------------+-------------+-------------+-------------+\n"
         "```\n\n"
         "*Развернутое решение:*\n\n"
@@ -811,7 +836,7 @@ def send_example_5(bot, chat_id):
         "+-----------------------+-------------+-------------+-------------+\n"
         "| Масса сплава (кг)     |      x      |    x + 3    |   2x + 3    |\n"
         "| Концентрация меди (%) |     10      |     40      |     30      |\n"
-        "| Масса меди (кг)        |    0,1x     |  0,4(x+3)   | 0,3(2x+3)   |\n"
+        "| Масса меди (кг)       |    0,1x     |   0,4(x+3)  |  0,3(2x+3)  |\n"
         "+-----------------------+-------------+-------------+-------------+\n"
         "```\n\n"
         "*Развернутое решение:*\n\n"
@@ -1039,8 +1064,7 @@ def handle_concentration_tasks(bot, message, user_data):
 
     # ========== НАВИГАЦИЯ НАЗАД ==========
     if text == '🔙 Назад к типам задач':
-        from main import show_text_tasks_menu
-        show_text_tasks_menu(bot, user_id)
+        show_text_tasks_menu_wrapper(bot, user_id)
         return
 
     elif text == '🔙 Назад к меню концентрации':
