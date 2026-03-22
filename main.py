@@ -1,4 +1,4 @@
-iimport vk_api
+import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 import tasks_movement
 import tasks_work
