@@ -1,4 +1,4 @@
-mport telebot
+import telebot
 from telebot import types
 import tasks_movement
 import tasks_work
